@@ -30,14 +30,24 @@ Run the setup script. This script enables required APIs, configures VPC peering 
 ./setup_gcp.sh
 ```
 
-### 3. Database Initialization
+### 3. Enable AI Database Flags
+Before running the SQL scripts, you must explicitly enable the AI extension flag on your database instance. Run this command (replacing with your exact instance details):
+```bash
+gcloud alloydb instances update YOUR_INSTANCE_ID \
+    --cluster=YOUR_CLUSTER_ID \
+    --region=YOUR_REGION \
+    --database-flags=alloydb_ai_nl.enabled=on
+```
+*(Alternatively, you can edit your Primary Instance in the GCP Console and add the `alloydb_ai_nl.enabled=on` database flag manually).*
+
+### 4. Database Initialization
 Connect to your AlloyDB instance using `psql` or AlloyDB Studio in the Google Cloud Console.
 Run the two SQL scripts found in the `database/` folder in this exact order:
 
 1. **`schema.sql`**: Enables the vector/ML extensions, creates the `cravesaver.dishes` schema, and seeds the restaurant data.
 2. **`setup_nl.sql`**: Enables the natural language AI extension, adds metadata comments to teach the AI about your schema, and sets a prescriptive rule for sorting by `mood_embedding`.
 
-### 4. Deploy to Cloud Run
+### 5. Deploy to Cloud Run
 Deploy the Flask application to Google Cloud Run. The script automatically handles connecting Cloud Run securely to your private network.
 ```bash
 ./deploy.sh
