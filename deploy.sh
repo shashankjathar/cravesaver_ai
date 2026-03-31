@@ -35,6 +35,8 @@ gcloud run deploy cravesaver-app \
     --source . \
     --region $REGION \
     --allow-unauthenticated \
+    --network=easy-alloydb-vpc \
+    --subnet=default \
     --set-env-vars INSTANCE_CONNECTION_NAME=$INSTANCE_NAME \
     --set-env-vars DB_USER="postgres" \
     --set-env-vars DB_PASS="YOUR_EXISTING_DB_PASSWORD" \

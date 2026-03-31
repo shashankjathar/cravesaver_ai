@@ -24,7 +24,7 @@ try:
                 user=DB_USER,
                 password=DB_PASS,
                 db=DB_NAME,
-                ip_type="PUBLIC" # Use "PRIVATE" if VPC peered, "PUBLIC" for simple Cloud Run direct
+                ip_type="PRIVATE" # Changed to PRIVATE because AlloyDB is in easy-alloydb-vpc
             )
         engine = sqlalchemy.create_engine("postgresql+pg8000://", creator=getconn, pool_pre_ping=True)
         print(f"Connected to AlloyDB: {INSTANCE_CONNECTION_NAME}")

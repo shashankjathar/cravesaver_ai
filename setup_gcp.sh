@@ -16,7 +16,7 @@ source .env
 set +a
 
 PROJECT_ID=$(gcloud config get-value project)
-NETWORK="default"
+NETWORK="easy-alloydb-vpc"
 
 echo "Starting deployment in project: $PROJECT_ID, region: $REGION"
 
