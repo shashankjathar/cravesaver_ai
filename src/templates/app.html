@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CraveSaver AI | AlloyDB Matchmaker</title>
+    <!-- TailwindCSS for quick prototyping similar to modern interfaces -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+        .dish-card { transition: transform 0.2s; }
+        .dish-card:hover { transform: translateY(-5px); }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen text-gray-800">
+    <!-- Header -->
+    <header class="bg-red-500 text-white p-6 shadow-md">
+        <div class="max-w-4xl mx-auto flex items-center justify-between">
+            <h1 class="text-3xl font-bold tracking-tight">🍕 CraveSaver AI</h1>
+            <p class="text-sm font-medium opacity-90">Powered by AlloyDB Vector Search</p>
+        </div>
+    </header>
+
+    <!-- Main Subject -->
+    <main class="flex-grow max-w-4xl w-full mx-auto p-6 mt-8">
+        <div class="bg-white rounded-xl shadow-lg p-8">
+            <h2 class="text-2xl font-semibold mb-2">What are you craving?</h2>
+            <p class="text-gray-500 mb-6">Describe your mood, your strict budget, and how fast you want it. Our AI database translates this directly to SQL.</p>
+            
+            <div class="flex gap-4">
+                <input type="text" id="queryInput" placeholder="e.g. I need cheap comfort food under ₹500 in less than 30 mins" class="flex-grow p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 text-lg">
+                <button onclick="submitQuery()" class="bg-red-500 hover:bg-red-600 text-white font-bold py-4 px-8 rounded-lg shadow-md transition-colors text-lg">
+                    Find Food
+                </button>
+            </div>
+            
+            <!-- Loader -->
+            <div id="loader" class="hidden mt-8 text-center text-gray-500 font-medium">
+                <svg class="animate-spin h-8 w-8 mx-auto mb-2 text-red-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Processing NL2SQL on AlloyDB...
+            </div>
+
+            <!-- SQL Display Box (Educational) -->
+            <div id="sqlBox" class="hidden mt-8 bg-gray-900 rounded-lg p-4 font-mono text-sm text-green-400 overflow-x-auto shadow-inner">
+                <p class="text-gray-400 uppercase text-xs mb-2 tracking-wider">Generated Query:</p>
+                <code id="sqlText"></code>
+            </div>
+        </div>
+
+        <!-- Results Grid -->
+        <div id="resultsGrid" class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+            <!-- JavaScript dynamically injects dish cards here -->
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="text-center p-6 text-gray-400 text-sm">
+        Mini-Project: AlloyDB AI Natural Language & Vector Database
+    </footer>
+
+    <script>
+        async function submitQuery() {
+            const query = document.getElementById('queryInput').value;
+            if(!query) return;
+
+            document.getElementById('loader').classList.remove('hidden');
+            document.getElementById('sqlBox').classList.add('hidden');
+            document.getElementById('resultsGrid').innerHTML = '';
+
+            try {
+                const response = await fetch('/api/query', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({query})
+                });
+
+                const data = await response.json();
+                
+                document.getElementById('loader').classList.add('hidden');
+
+                if(data.error) {
+                    alert(`Error: ${data.details || data.error}`);
+                    return;
+                }
+
+                // Show Generated SQL
+                document.getElementById('sqlBox').classList.remove('hidden');
+                document.getElementById('sqlText').innerText = data.generated_sql;
+
+                // Render Dish Cards
+                const grid = document.getElementById('resultsGrid');
+                if(data.results.length === 0) {
+                    grid.innerHTML = '<p class="col-span-full text-center text-gray-500 py-8">No dishes found matching your strict criteria.</p>';
+                } else {
+                    data.results.forEach(dish => {
+                        const card = document.createElement('div');
+                        card.className = "dish-card bg-white rounded-xl shadow-md p-6 border-t-4 border-red-500 flex flex-col h-full";
+                        card.innerHTML = `
+                            <div class="flex justify-between items-start mb-2">
+                                <h3 class="text-xl font-bold text-gray-800">${dish.dish_name}</h3>
+                                <span class="bg-green-100 text-green-800 text-sm font-semibold px-3 py-1 rounded-full">₹${dish.price}</span>
+                            </div>
+                            <p class="text-red-500 font-semibold mb-4 text-sm flex items-center gap-1">📍 ${dish.restaurant_name} &bull; ⏱️ ${dish.est_delivery_mins} mins</p>
+                            <p class="text-gray-600 flex-grow leading-relaxed">${dish.description}</p>
+                            <div class="mt-4 pt-4 border-t border-gray-100">
+                                <span class="text-xs uppercase tracking-wider text-gray-400 font-semibold block mb-1">Vibe Match</span>
+                                <p class="text-sm italic text-gray-500">"${dish.flavor_profile}"</p>
+                            </div>
+                        `;
+                        grid.appendChild(card);
+                    });
+                }
+            } catch (err) {
+                document.getElementById('loader').classList.add('hidden');
+                alert("Application failed to connect to backend.");
+            }
+        }
+    </script>
+</body>
+</html>
