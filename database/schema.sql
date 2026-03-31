@@ -12,7 +12,7 @@ CREATE SCHEMA IF NOT EXISTS cravesaver;
 CALL google_ml.create_model(
     model_id => 'my_cross_region_model',
     model_provider => 'google',
-    model_qualified_name => 'projects/genai-academy-491610/locations/us-central1/publishers/google/models/text-embedding-005',
+    model_qualified_name => 'projects/genai-academy-491610/locations/us-central1/publishers/google/models/textembedding-gecko@003',
     model_type => 'text_embedding'
 );
 
